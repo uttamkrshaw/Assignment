@@ -13,22 +13,24 @@ import {
   Text,
   useColorModeValue,
   Link,
-  Radio, RadioGroup,FormHelperText,FormErrorMessage
+  Radio, RadioGroup, FormHelperText, FormErrorMessage, useToast
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import axios from "axios"
+import Navbar from './Navbar';
 
 export default function Signup() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const toast = useToast()
+  const [fname, setFname] = useState("");
+  const [lname, setLname] = useState("");
+  const [mail, setMail] = useState("");
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [gender, setGender] = useState("");
   const [dob, setDob] = useState("");
   const [age, setAge] = useState("");
+  const [load, setLoad] = useState(false)
 
   const countries = ["India", "Japan", "Russia"];
 
@@ -82,19 +84,54 @@ export default function Signup() {
     setAge(calculateAge(e.target.value))
   }
 
+  const handleReset = () =>{
+    setLname('')
+    setFname('')
+    setMail('')
+    setGender('')
+    setAge('')
+    setCity('')
+    setCountry('')
+    setState('')
+    setDob('')
+    setLoad(false)
+  }
 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoad(!load)
 
-    if (!firstName || !lastName || !email || !country || !state || !city || !gender || !dob) {
+    if (!fname || !lname || !mail || !country || !state || !city || !gender || !dob) {
       alert("Please fill in all the required fields.");
       return;
     } else {
-      console.log(firstName, lastName, email, country, city, state, dob);
+      const payload = {
+        fname, lname, mail, country, city, state, gender, dob, age
+      }
+      axios.post('https://giddy-erin-pocketbook.cyclic.app/user/add', payload)
+        .then((res) => {
+          toast({
+            title: 'User Register Successful.',
+            description: "User Data Successfully Saved in the Database.",
+            status: 'success',
+            duration: 2000,
+            isClosable: true,
+          });
+          handleReset()
+        })
+        .catch((error) => toast({
+          title: 'User Register Unsuccessful.',
+          description: "User Data couldn't Successfully Saved in the Database due to Some Error.",
+          status: 'success',
+          duration: 9000,
+          isClosable: true,
+        }))
     }
   }
   return (
+    <>
+    <Navbar />
     <Flex
       minH={'100vh'}
       align={'center'}
@@ -103,10 +140,10 @@ export default function Signup() {
       <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
         <Stack align={'center'}>
           <Heading fontSize={'4xl'} textAlign={'center'}>
-            Sign up
+           Registration Form
           </Heading>
           <Text fontSize={'lg'} color={'gray.600'}>
-            to enjoy all of our cool features ✌️
+            Pls Enter Your Details To Register ✌️
           </Text>
         </Stack>
         <Box
@@ -119,19 +156,19 @@ export default function Signup() {
               <Box>
                 <FormControl id="firstName" isRequired>
                   <FormLabel>First Name</FormLabel>
-                  <Input type="text" name='firstName' value={firstName} onChange={(e) => { setFirstName(e.target.value) }} />
+                  <Input type="text" name='fname' value={fname} onChange={(e) => { setFname(e.target.value) }} />
                 </FormControl>
               </Box>
               <Box>
                 <FormControl id="lastName">
                   <FormLabel>Last Name</FormLabel>
-                  <Input type="text" name='lastName' value={lastName} onChange={(e) => { setLastName(e.target.value) }} />
+                  <Input type="text" name='lname' value={lname} onChange={(e) => { setLname(e.target.value) }} />
                 </FormControl>
               </Box>
             </HStack>
             <FormControl id="email" isRequired>
               <FormLabel>Email address</FormLabel>
-              <Input type="email" name='email' value={email} onChange={(e) => { setEmail(e.target.value) }} />
+              <Input type="email" name='mail' value={mail} onChange={(e) => { setMail(e.target.value) }} />
             </FormControl>
             <HStack>
               <Box>
@@ -216,6 +253,7 @@ export default function Signup() {
                 _hover={{
                   bg: 'blue.500',
                 }}
+                isLoading={load}
                 onClick={handleSubmit}
               >
                 Sign up
@@ -223,12 +261,13 @@ export default function Signup() {
             </Stack>
             <Stack pt={6}>
               <Text align={'center'}>
-                Already a user? <Link color={'blue.400'}>Login</Link>
+                Already a Registered? <Link color={'blue.400'}>Check User List</Link>
               </Text>
             </Stack>
           </Stack>
         </Box>
       </Stack>
     </Flex>
+    </>
   );
 }
